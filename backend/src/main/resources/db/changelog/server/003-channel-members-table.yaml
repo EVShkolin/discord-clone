@@ -1,0 +1,46 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003
+      author: admin
+      changes:
+        - createTable:
+            tableName: server_members
+            schemaName: server_schema
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: server_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: current_timestamp
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            referencedTableName: servers
+            referencedTableSchemaName: server_schema
+            referencedColumnNames: id
+            baseTableName: server_members
+            baseTableSchemaName: server_schema
+            baseColumnNames: server_id
+            constraintName: fk_server_members_servers
+            onDelete: cascade
+
+        - addUniqueConstraint:
+            constraintName: uk_server_members_server_user
+            schemaName: server_schema
+            tableName: server_members
+            columnNames: server_id, user_id

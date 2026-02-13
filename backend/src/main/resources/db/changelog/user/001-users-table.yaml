@@ -1,0 +1,61 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001
+      author: admin
+      changes:
+        - sql:
+            sql: CREATE SCHEMA IF NOT EXISTS user_schema;
+
+        - createTable:
+            tableName: users
+            schemaName: user_schema
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: varchar(100)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: password_hash
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: avatar_url
+                  type: text
+              - column:
+                  name: status
+                  type: varchar(20)
+                  defaultValue: "online"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamptz
+                  defaultValueComputed: current_timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: timestamptz
+
+        - sql:
+            sql: |
+              ALTER TABLE user_schema.users
+              ADD CONSTRAINT chk_email
+              CHECK (email ~ '^[A-Za-z0-9._]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$');
+              
+              ALTER TABLE user_schema.users
+              ADD CONSTRAINT chk_status
+              CHECK (status IN ('online', 'offline', 'do_not_disturb'));
