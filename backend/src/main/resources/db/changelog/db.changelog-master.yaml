@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - includeAll:
+      path: db/changelog/user
+  - includeAll:
+      path: db/changelog/server
+  - includeAll:
+      path: db/changelog/message
