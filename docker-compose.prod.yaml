@@ -1,0 +1,57 @@
+services:
+  app-db:
+    image: postgres:17
+    container_name: app-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -p 5432" ]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  app-backend:
+    image: ghcr.io/${GIT_REPOSITORY}/backend:latest
+    container_name: app-backend
+    restart: unless-stopped
+    environment:
+      BACKEND_PORT: ${BACKEND_PORT}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      app-db:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  app-frontend:
+    image: ghcr.io/${GIT_REPOSITORY}/frontend:latest
+    container_name: app-frontend
+    restart: unless_stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      app-backend:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost" ]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+volumes:
+  pg_data:

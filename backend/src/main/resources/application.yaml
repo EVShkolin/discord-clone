@@ -1,12 +1,12 @@
 server:
-  port: 8080
+  port: ${BACKEND_PORT:8080}
 
 spring:
   application:
     name: backend
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/discord_clone
-    username: ${POSTGRES_USERNAME:postgres}
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:discord_clone}
+    username: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
   liquibase:

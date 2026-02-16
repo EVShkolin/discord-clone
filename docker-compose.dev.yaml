@@ -1,0 +1,57 @@
+services:
+  app-db:
+    image: postgres:17
+    container_name: app-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: discord_clone
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -p 5432"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  app-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: app-backend
+    ports:
+      - "8081:8080"
+    environment:
+      POSTGRES_HOST: app-db
+      POSTGRES_PORT: 5432
+      POSTGRES_USERNAME: postgres
+      POSTGRES_PASSWORD: postgres
+    depends_on:
+      app-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  app-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: app-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      app-backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+volumes:
+  pg_data:
