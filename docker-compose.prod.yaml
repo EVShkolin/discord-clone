@@ -3,10 +3,8 @@ services:
     image: postgres:17
     container_name: app-db
     restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    env_file:
+      - .env
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
@@ -19,13 +17,8 @@ services:
     image: ghcr.io/${GIT_REPOSITORY}/backend:latest
     container_name: app-backend
     restart: unless-stopped
-    environment:
-      BACKEND_PORT: ${BACKEND_PORT}
-      POSTGRES_HOST: ${POSTGRES_HOST}
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    env_file:
+      - .env
     depends_on:
       app-db:
         condition: service_healthy
@@ -39,6 +32,8 @@ services:
     image: ghcr.io/${GIT_REPOSITORY}/frontend:latest
     container_name: app-frontend
     restart: unless_stopped
+    env_file:
+      - .env
     ports:
       - "80:80"
       - "443:443"
