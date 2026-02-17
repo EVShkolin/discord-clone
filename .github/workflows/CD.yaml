@@ -40,7 +40,7 @@ jobs:
           cache: 'maven'
       - name: Build
         run: |
-          cd /backend
+          cd ./backend
           mvn --batch-mode package -DskipTests
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
