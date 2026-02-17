@@ -108,4 +108,4 @@ jobs:
           script: |
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             cd /opt/app
-            docker compose -f docker-compose.prod.yaml --pull always up -d
+            docker compose -f docker-compose.prod.yaml up --pull always -d
