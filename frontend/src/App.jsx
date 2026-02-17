@@ -3,7 +3,7 @@ import './App.css'
 function App() {
 
   return (
-      <>Test (upd5)</>
+      <>Test (upd6)</>
   )
 }
 
