@@ -37,7 +37,7 @@ databaseChangeLog:
               - column:
                   name: status
                   type: varchar(20)
-                  defaultValue: "online"
+                  defaultValue: "ONLINE"
                   constraints:
                     nullable: false
               - column:
@@ -58,4 +58,4 @@ databaseChangeLog:
               
               ALTER TABLE user_schema.users
               ADD CONSTRAINT chk_status
-              CHECK (status IN ('online', 'offline', 'do_not_disturb'));
+              CHECK (status IN ('ONLINE', 'OFFLINE', 'DO_NOT_DISTURB'));
