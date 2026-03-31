@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.itis.backend.user.api.UserCreateDto;
-import ru.itis.backend.user.api.UserDto;
-import ru.itis.backend.user.api.UserService;
 
 @RequiredArgsConstructor
 @RestController
@@ -20,18 +18,16 @@ public class AuthController {
 
     private final AuthService authService;
 
-    private final UserService userService;
-
     @PostMapping("/login")
-    public ResponseEntity<UserDto> createLoginInfo(Authentication authentication) {
+    public ResponseEntity<AuthDto> createLoginInfo(Authentication authentication) {
         return ResponseEntity.ok(authService.createLoginInfo(authentication));
     }
 
     @PostMapping
-    public ResponseEntity<UserDto> create(@RequestBody @Valid UserCreateDto userDto) {
+    public ResponseEntity<AuthDto> register(@RequestBody @Valid UserCreateDto userDto) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(userService.save(userDto));
+                .body(authService.registerUser(userDto));
     }
 
 }

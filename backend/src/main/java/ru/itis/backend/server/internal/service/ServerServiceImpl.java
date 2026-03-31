@@ -10,7 +10,6 @@ import ru.itis.backend.server.api.dto.ServerDto;
 import ru.itis.backend.server.api.service.ChannelService;
 import ru.itis.backend.server.api.service.ServerMemberService;
 import ru.itis.backend.server.api.service.ServerService;
-import ru.itis.backend.server.internal.mapper.ChannelMapper;
 import ru.itis.backend.server.internal.mapper.ServerMapper;
 import ru.itis.backend.server.internal.model.Server;
 import ru.itis.backend.server.internal.repository.ServerRepository;
@@ -30,18 +29,20 @@ public class ServerServiceImpl implements ServerService {
 
     private final ServerMapper serverMapper;
 
-    private final ChannelMapper channelMapper;
+    @Override
+    public List<ServerDto> findAllByUserId(Long userId) {
+        log.debug("IN ServerServiceImpl find all by user id {}", userId);
+        return serverRepository.findAllByUserId(userId).stream()
+                .map(serverMapper::toDtoWithChannels)
+                .toList();
+    }
 
     @Override
     public ServerDto findById(Long id) {
         log.debug("IN ServerServiceImpl find by id {}", id);
-        Server server = serverRepository.findById(id)
+        return serverRepository.findById(id)
+                .map(serverMapper::toDtoWithChannels)
                 .orElseThrow(() -> new ObjectNotFoundException("Server", id));
-
-        ServerDto serverDto = serverMapper.toDto(server);
-        serverDto.setChannels(channelMapper.toDtoList(server.getChannels()));
-
-        return serverDto;
     }
 
     @Override

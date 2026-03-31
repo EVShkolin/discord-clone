@@ -1,0 +1,20 @@
+.messageForm {
+  background-color: var(--third-bg-color);
+  height: 68px;
+  width: 98%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.textarea {
+  width: 80%;
+  background-color: #393a41;
+  border: 1px solid #666768;
+  color: white;
+}
+
+.sendBtn {
+}

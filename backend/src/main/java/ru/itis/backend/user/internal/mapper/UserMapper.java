@@ -13,8 +13,7 @@ public class UserMapper {
                 user.getName(),
                 user.getAvatarUrl(),
                 user.getStatus(),
-                user.getCreatedAt(),
-                null
+                user.getCreatedAt()
         );
     }
 

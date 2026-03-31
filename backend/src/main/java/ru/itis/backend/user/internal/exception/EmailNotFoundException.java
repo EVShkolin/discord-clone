@@ -1,4 +1,4 @@
-package ru.itis.backend.common.exception;
+package ru.itis.backend.user.internal.exception;
 
 public class EmailNotFoundException extends RuntimeException {
 

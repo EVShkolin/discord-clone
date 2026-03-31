@@ -2,9 +2,12 @@ package ru.itis.backend.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import ru.itis.backend.user.api.UserCreateDto;
 import ru.itis.backend.user.api.UserDto;
+import ru.itis.backend.user.api.UserService;
 
 @Service
 @RequiredArgsConstructor
@@ -13,14 +16,24 @@ public class AuthService {
 
     private final JwtProvider jwtProvider;
 
-    public UserDto createLoginInfo(Authentication authentication) {
+    private final UserService userService;
+
+    public AuthDto createLoginInfo(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         String token = jwtProvider.createToken(authentication);
 
         UserDto user = userPrincipal.getUser();
-        user.setToken(token);
+        return new AuthDto(user, token);
+    }
 
-        return user;
+    public AuthDto registerUser(UserCreateDto userDto) {
+        UserDto user = userService.save(userDto);
+        String token = jwtProvider.createToken(
+                new UsernamePasswordAuthenticationToken(
+                        new UserPrincipal(user, null),
+                        null
+                ));
+        return new AuthDto(user, token);
     }
 
 }

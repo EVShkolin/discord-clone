@@ -24,6 +24,4 @@ public class UserDto {
 
     private Instant createdAt;
 
-    private String token;
-
 }

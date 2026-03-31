@@ -1,0 +1,65 @@
+.message {
+  display: flex;
+  color: white;
+  margin: 8px 0;
+}
+
+.ownMessage:hover .actions {
+  visibility: visible;
+}
+
+.message:hover {
+  background-color: #2c2d32;
+}
+
+.messageContent {
+  width: 100%;
+}
+
+.messageContent p {
+  white-space: pre-wrap;
+  font-weight: 400;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin: 5px 15px 0 0;
+}
+
+.messageInfo {
+  display: flex;
+  width: 100%;
+  align-items: center;
+}
+
+.actions {
+  margin-left: auto;
+  margin-right: 15px;
+  display: flex;
+  gap: 8px;
+  visibility: hidden;
+}
+
+.actionBtn {
+  background: none;
+  border: 1px solid grey;
+  color: white;
+  border-radius: 4px;
+}
+
+.actionBtn:hover {
+  background-color: grey;
+}
+
+.author {
+  margin-right: 15px;
+}
+
+.textarea {
+  width: 80%;
+  background-color: #393a41;
+  border: 1px solid #666768;
+  color: white;
+}

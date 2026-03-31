@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import ru.itis.backend.common.exception.EmailNotFoundException;
+import ru.itis.backend.user.internal.exception.EmailNotFoundException;
 import ru.itis.backend.common.exception.ObjectNotFoundException;
 import ru.itis.backend.user.api.UserCreateDto;
 import ru.itis.backend.user.api.UserDataDto;
@@ -66,6 +66,7 @@ public class UserServiceImpl implements UserService {
                 .passwordHash(passwordHash)
                 .build();
         user = userRepository.save(user);
+        log.info("Created new user {}", user.getEmail());
         return userMapper.toDto(user);
     }
 

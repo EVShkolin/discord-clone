@@ -10,6 +10,7 @@ import java.util.List;
 public class ChannelMapper {
 
     public ChannelDto toDto(Channel channel) {
+        if (channel == null) return null;
         return new ChannelDto(
                 channel.getId(),
                 channel.getName(),
@@ -20,6 +21,7 @@ public class ChannelMapper {
     }
 
     public List<ChannelDto> toDtoList(List<Channel> channels) {
+        if (channels == null) return null;
         return channels.stream()
                 .map(this::toDto)
                 .toList();

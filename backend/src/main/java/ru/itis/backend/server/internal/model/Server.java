@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -33,10 +34,10 @@ public class Server {
     private Long creatorId;
 
     @OneToMany(mappedBy = "server")
-    private List<Channel> channels;
+    private List<Channel> channels = new ArrayList<>();
 
     @OneToMany(mappedBy = "server")
-    private List<ServerMember> members;
+    private List<ServerMember> members = new ArrayList<>();
 
     @Column(name = "icon_url")
     private String iconUrl;

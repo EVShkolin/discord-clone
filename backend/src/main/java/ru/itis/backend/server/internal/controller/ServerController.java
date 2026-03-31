@@ -8,12 +8,19 @@ import org.springframework.web.bind.annotation.*;
 import ru.itis.backend.server.api.dto.ServerDto;
 import ru.itis.backend.server.api.service.ServerService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/servers")
 @RequiredArgsConstructor
 public class ServerController {
 
     private final ServerService serverService;
+
+    @GetMapping
+    public ResponseEntity<List<ServerDto>> findAllByUserId(@RequestParam("userId") Long userId) {
+        return ResponseEntity.ok(serverService.findAllByUserId(userId));
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<ServerDto> findById(@PathVariable Long id) {
