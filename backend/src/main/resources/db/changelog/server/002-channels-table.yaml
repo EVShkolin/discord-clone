@@ -25,7 +25,7 @@ databaseChangeLog:
               - column:
                   name: type
                   type: varchar(20)
-                  defaultValue: 'text'
+                  defaultValue: 'TEXT'
                   constraints:
                     nullable: false
               - column:
@@ -58,7 +58,7 @@ databaseChangeLog:
             sql: |
               ALTER TABLE server_schema.channels
               ADD CONSTRAINT chk_type
-              CHECK (type IN ('text', 'voice'));
+              CHECK (type IN ('TEXT', 'VOICE'));
 
               ALTER TABLE server_schema.channels
               ADD CONSTRAINT chk_user_limit

@@ -4,11 +4,26 @@ server:
 spring:
   application:
     name: backend
+
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:discord_clone}
     username: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+
   liquibase:
     change-log: db/changelog/db.changelog-master.yaml
+
   banner: banner.txt
+
+logging:
+  level:
+    ru.itis.backend: DEBUG
+
+jwt:
+  seed: ${JWT_SEED:superDuperSecureSeedForGeneratingJwt}

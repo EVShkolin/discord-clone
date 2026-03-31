@@ -1,0 +1,16 @@
+.serverList {
+  background-color: inherit;
+  height: 100%;
+  border: 1px solid #38393e;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  overflow-y: auto;
+}
+
+.divider {
+  height: 0;
+  border-bottom: 1px solid #38393e;
+  margin-top: 10px;
+}

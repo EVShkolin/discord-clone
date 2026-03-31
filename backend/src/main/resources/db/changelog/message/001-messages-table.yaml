@@ -22,7 +22,7 @@ databaseChangeLog:
               - column:
                   name: type
                   type: varchar(20)
-                  defaultValue: 'text'
+                  defaultValue: 'TEXT'
                   constraints:
                     nullable: false
               - column:
@@ -55,8 +55,8 @@ databaseChangeLog:
             sql: |
               ALTER TABLE message_schema.messages
               ADD CONSTRAINT chk_type
-              CHECK (type IN ('text', 'voice', 'sticker'));
+              CHECK (type IN ('TEXT', 'VOICE', 'STICKER'));
               
               ALTER TABLE message_schema.messages
               ADD CONSTRAINT chk_not_empty_text_message
-              CHECK ( NOT (type = 'text' AND (content IS NULL OR content = '')) );
+              CHECK ( NOT (type = 'TEXT' AND (content IS NULL OR content = '')) );
