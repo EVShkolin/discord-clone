@@ -4,12 +4,11 @@ import { useParams } from 'react-router';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { messageApi } from '@/shared/api/message.js';
 import MessageForm from '@/components/MessageForm/MessageForm.jsx';
-import { useInView } from 'react-intersection-observer';
-import { useEffect } from 'react';
+import {useCallback, useRef} from 'react';
 
 const MessagePanel = () => {
   const { channelId } = useParams();
-  const { ref, inView } = useInView();
+  const messageListRef = useRef(null);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ['messages', channelId],
@@ -19,22 +18,24 @@ const MessagePanel = () => {
 
   const messages = data?.pages.flatMap((page) => page.content);
 
-  useEffect(() => {
-    if (inView) {
-      console.log('IN VIEW');
+  const handleScroll = () => {
+    const container = messageListRef.current;
+    if (!container || isFetchingNextPage || !hasNextPage) return;
+    const isAtTop = container.scrollHeight + container.scrollTop - container.clientHeight <= 1;
+
+    if (isAtTop) {
       fetchNextPage().then((res) => res.data);
     }
-  }, [fetchNextPage, inView]);
+  };
 
   return (
     <div className={styles.messagePanel}>
-      <ul className={styles.messageList}>
+      <ul className={styles.messageList} ref={messageListRef} onScroll={handleScroll}>
         {messages?.map((m) => (
           <li key={m.id}>
             <Message message={m} />
           </li>
         ))}
-        <div ref={ref}>{isFetchingNextPage && 'Loading...'}</div>
       </ul>
       <MessageForm />
     </div>

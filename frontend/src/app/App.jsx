@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes, useNavigate } from 'react-router';
 import Login from '../pages/Login/Login.jsx';
-import AppLayout from '../pages/AppLayout/AppLayout.jsx';
+import Main from '../pages/AppLayout/Main.jsx';
 import PrivateRoute from './routing/PrivateRoute.jsx';
 import { AuthProvider } from './provider/AuthProvider.jsx';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -30,7 +30,7 @@ const App = () => {
               path="/channels/:serverId/:channelId"
               element={
                 <PrivateRoute>
-                  <AppLayout />
+                  <Main />
                 </PrivateRoute>
               }
             />
@@ -38,7 +38,7 @@ const App = () => {
               path="channels/@me"
               element={
                 <PrivateRoute>
-                  <AppLayout />
+                  <Main />
                 </PrivateRoute>
               }
             />

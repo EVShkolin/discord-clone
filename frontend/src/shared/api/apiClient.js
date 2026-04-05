@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const baseUrl = window.__RUNTIME_CONFIG__?.SERVER_URL || 'http://localhost:8080';
+const baseUrl = window.__RUNTIME_CONFIG__?.SERVER_URL || 'http://localhost:5173';
 
 export const apiClient = axios.create({
   baseURL: `${baseUrl}/api`,

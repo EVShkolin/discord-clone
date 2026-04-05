@@ -55,7 +55,7 @@ const Message = ({ message }) => {
         <div className={styles.messageInfo}>
           <span className={styles.author}>{message.author.name}</span>
           <span className={styles.date}>{formatDateTime(message.createdAt)}</span>
-          <span>{message.updatedAt !== message.createdAt ? ' (edited)' : ''}</span>
+          <span>{formatDateTime(message.updatedAt) !== formatDateTime(message.createdAt) ? ' (edited)' : ''}</span>
           <div className={styles.actions}>
             <button className={styles.actionBtn} onClick={() => setIsEditing(true)}>
               U
