@@ -28,6 +28,7 @@ services:
       POSTGRES_PORT: 5432
       POSTGRES_USERNAME: postgres
       POSTGRES_PASSWORD: postgres
+      SERVER_URL: http://localhost:3000
     depends_on:
       app-db:
         condition: service_healthy

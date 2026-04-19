@@ -29,6 +29,14 @@ public class ChannelServiceImpl implements ChannelService {
     private final ChannelMapper channelMapper;
 
     @Override
+    public ChannelDto findById(Long id) {
+        log.debug("IN ChannelServiceImpl find by id {}", id);
+        return channelRepository.findById(id)
+                .map(channelMapper::toDto)
+                .orElseThrow(() -> new ObjectNotFoundException("Channel", id));
+    }
+
+    @Override
     public List<ChannelDto> findAllByServerId(Long serverId) {
         log.debug("IN ChannelServiceImpl find all channels in server {}", serverId);
         List<Channel> channels = channelRepository.findAllByServerId(serverId);

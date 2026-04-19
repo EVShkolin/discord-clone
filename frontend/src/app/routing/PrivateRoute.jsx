@@ -1,17 +1,14 @@
-import { Navigate } from 'react-router';
-import { isTokenValid } from '@/shared/utils/tokenValidator.js';
+import { Navigate, Outlet } from 'react-router';
 import { useAuth } from '../provider/AuthProvider.jsx';
 
-const PrivateRoute = ({ children }) => {
-  const { logout } = useAuth();
-  const token = localStorage.getItem('jwt');
+const PrivateRoute = () => {
+  const { logout, isAuthenticated } = useAuth();
 
-  if (!isTokenValid(token)) {
-    console.log('Token invalid');
+  if (!isAuthenticated()) {
     logout();
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
-  return children;
+  return <Outlet />;
 };
 
 export default PrivateRoute;

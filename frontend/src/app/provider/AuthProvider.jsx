@@ -1,5 +1,6 @@
-import { createContext, useContext, useState } from 'react';
-import { isTokenValid } from '@/shared/utils/tokenValidator.js';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { isTokenValid } from '@shared/utils/tokenValidator.js';
+import { webSocketService } from '@features/websocket/lib/websocket.js';
 
 const AuthContext = createContext(undefined);
 
@@ -25,11 +26,20 @@ export const AuthProvider = ({ children }) => {
     return '';
   });
 
+  useEffect(() => {
+    if (isAuthenticated()) {
+      webSocketService.connect(token);
+    }
+  }, [token]);
+
+  const isAuthenticated = () => token && isTokenValid(token);
+
   const login = (user, token) => {
     setUser(user);
     setToken(token);
     localStorage.setItem('user', JSON.stringify(user));
     localStorage.setItem('jwt', token);
+    webSocketService.connect(token);
   };
 
   const logout = () => {
@@ -37,9 +47,18 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     localStorage.removeItem('user');
     localStorage.removeItem('jwt');
+    webSocketService.disconnect();
   };
 
-  return <AuthContext.Provider value={{ user, token, login, logout }}>{children}</AuthContext.Provider>;
+  useEffect(() => {
+    const handleLogout = () => logout();
+    window.addEventListener('logout', handleLogout);
+    return () => window.removeEventListener('logout', handleLogout);
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, token, isAuthenticated, login, logout }}>{children}</AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {
