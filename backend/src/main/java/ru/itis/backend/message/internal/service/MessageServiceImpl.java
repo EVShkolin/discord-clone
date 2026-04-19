@@ -2,6 +2,7 @@ package ru.itis.backend.message.internal.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -11,11 +12,16 @@ import org.springframework.util.StringUtils;
 import ru.itis.backend.common.exception.ObjectNotFoundException;
 import ru.itis.backend.message.api.MessageDto;
 import ru.itis.backend.message.api.MessageService;
+import ru.itis.backend.message.api.event.MessageCreatedEvent;
+import ru.itis.backend.message.api.event.MessageDeletedEvent;
+import ru.itis.backend.message.api.event.MessageUpdatedEvent;
 import ru.itis.backend.message.internal.exception.EmptyTextMessageException;
+import ru.itis.backend.message.internal.exception.MessageNotFoundException;
 import ru.itis.backend.message.internal.mapper.MessageMapper;
 import ru.itis.backend.message.internal.model.Message;
 import ru.itis.backend.message.internal.model.MessageType;
 import ru.itis.backend.message.internal.repository.MessageRepository;
+import ru.itis.backend.server.api.service.ChannelService;
 import ru.itis.backend.user.api.UserDto;
 import ru.itis.backend.user.api.UserService;
 
@@ -32,6 +38,10 @@ public class MessageServiceImpl implements MessageService {
     private final MessageMapper mapper;
 
     private final UserService userService;
+
+    private final ApplicationEventPublisher publisher;
+
+    private final ChannelService channelService;
 
     @Override
     public Page<MessageDto> findAllByChannel(Long channelId, Pageable pageable) {
@@ -52,13 +62,21 @@ public class MessageServiceImpl implements MessageService {
         if (messageDto.getType() == MessageType.TEXT && !StringUtils.hasText(messageDto.getContent()))
             throw new EmptyTextMessageException();
 
-        Long authorId = ((Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaim("userId");
-        messageDto.setAuthor(UserDto.builder().id(authorId).build());
+        UserDto author = userService.findById(getUserIdFromJwt());
+        messageDto.setAuthor(author);
 
         Message message = mapper.fromDto(messageDto);
         message = messageRepository.save(message);
-        UserDto author = userService.findById(message.getAuthorId());
-        return mapper.toDto(message, author);
+        messageDto = mapper.toDto(message, author);
+
+        Long serverId = channelService.findById(message.getChannelId()).getServerId();
+        publisher.publishEvent(new MessageCreatedEvent(messageDto, serverId));
+        return messageDto;
+    }
+
+    private Long getUserIdFromJwt() {
+        Jwt jwt = (Jwt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return jwt.getClaim("userId");
     }
 
     @Override
@@ -70,13 +88,24 @@ public class MessageServiceImpl implements MessageService {
         message = messageRepository.save(message);
 
         UserDto userDto = userService.findById(message.getAuthorId());
-        return mapper.toDto(message, userDto);
+        MessageDto dto = mapper.toDto(message, userDto);
+
+        Long serverId = channelService.findById(message.getChannelId()).getServerId();
+        publisher.publishEvent(new MessageUpdatedEvent(dto, serverId));
+        return dto;
 
     }
 
     @Override
     public void softDelete(UUID id) {
         log.debug("IN MessageServiceImpl soft delete {}", id);
+        Message message = messageRepository.findById(id).orElse(null);
+        if (message == null) return;
+
+        Long serverId = channelService.findById(message.getChannelId()).getServerId();
         messageRepository.softDelete(id);
+        publisher.publishEvent(
+                new MessageDeletedEvent(serverId, message.getChannelId(), message.getId())
+        );
     }
 }

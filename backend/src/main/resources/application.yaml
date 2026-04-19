@@ -27,3 +27,6 @@ logging:
 
 jwt:
   seed: ${JWT_SEED:superDuperSecureSeedForGeneratingJwt}
+
+websocket:
+  allowed-origins: ${SERVER_URL:http://localhost:5173}

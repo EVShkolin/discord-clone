@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router';
-import LoginForm from '@/components/LoginForm/LoginForm.jsx';
-import RegisterForm from '@/components/RegisterForm/RegisterForm.jsx';
+import LoginForm from '@features/auth/ui/LoginForm/LoginForm.jsx';
+import RegisterForm from '@features/auth/ui/RegisterForm/RegisterForm.jsx';
 import styles from './Login.module.css';
 
 const Login = () => {

@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface ChannelService {
 
+    ChannelDto findById(Long id);
+
     List<ChannelDto> findAllByServerId(Long serverId);
 
     ChannelDto create(Long serverId, ChannelDto channelDto);
