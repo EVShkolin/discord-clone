@@ -3,7 +3,7 @@ import ServerIcon from '@entities/ServerIcon/ServerIcon.jsx';
 import { useNavigate, useParams } from 'react-router';
 import { useAuth } from '@app/provider/AuthProvider.jsx';
 import { ServerCreateModal } from '@features/server-actions';
-import { useServerQuery } from '@features/navigation/lib/useServerQuery.js';
+import { useServerQuery } from '@shared/hooks/useServerQuery.js';
 import { useRef } from 'react';
 import { webSocketService } from '@features/websocket/lib/websocket.js';
 

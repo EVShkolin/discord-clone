@@ -1,14 +1,24 @@
 import styles from './ChannelPanel.module.css';
 import { useNavigate, useParams } from 'react-router';
-import { useAuth } from '@app/provider/AuthProvider.jsx';
-import { useServerQuery } from '@features/navigation/lib/useServerQuery.js';
+import { useCurrentUserServers } from '@features/navigation/lib/useCurrentUserServers.js';
+import { useMediasoup } from '@app/provider/MediasoupProvider.jsx';
+import { useVideo } from '@features/voice-chat/lib/useVideo.js';
 
 const ChannelPanel = () => {
-  const { user } = useAuth();
   const { serverId, channelId } = useParams();
   const navigate = useNavigate();
-  const { data: servers } = useServerQuery(user.id);
+  const { joinVoiceChannel, voiceChannelIdRef } = useMediasoup();
+  const { stopVideo } = useVideo();
+  const { data: servers } = useCurrentUserServers();
   const server = servers?.find((s) => s.id === Number(serverId));
+
+  const handleVoiceChannelClick = (id) => {
+    navigate(`/channels/${serverId}/${id}`);
+    if (voiceChannelIdRef.current !== id) {
+      stopVideo();
+      joinVoiceChannel(id);
+    }
+  };
 
   return (
     <div className={styles.panel}>
@@ -30,7 +40,7 @@ const ChannelPanel = () => {
         {server?.channels
           .filter((ch) => ch.type.toLowerCase() === 'voice')
           .map((ch) => (
-            <li key={ch.id} className={styles.channelItem} onClick={() => navigate(`/channels/${server.id}/${ch.id}`)}>
+            <li key={ch.id} className={styles.channelItem} onClick={() => handleVoiceChannelClick(ch.id)}>
               🔊 {ch.name}
             </li>
           ))}

@@ -17,30 +17,22 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import java.security.*;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 
 @Configuration
 public class JwtConfig {
 
-    private final RSAPrivateKey privateKey;
-
     private final RSAPublicKey publicKey;
 
-    public JwtConfig(@Value("${jwt.seed}") String jwtSeed) throws NoSuchAlgorithmException {
-        KeyPair keyPair = getKeyPair(jwtSeed);
-        this.publicKey = (RSAPublicKey) keyPair.getPublic();
-        this.privateKey = (RSAPrivateKey) keyPair.getPrivate();
-    }
+    private final RSAPrivateKey privateKey;
 
-    private KeyPair getKeyPair(String jwtSeed) throws NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] seedBytes = digest.digest(jwtSeed.getBytes());
-
-        SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
-        secureRandom.setSeed(seedBytes);
-
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        keyPairGenerator.initialize(2048, secureRandom);
-        return keyPairGenerator.generateKeyPair();
+    public JwtConfig(@Value("${jwt.public-key}") String publicKeyBase64,
+                     @Value("${jwt.private-key}") String privateKeyBase64) {
+        this.publicKey = loadPublicKey(publicKeyBase64);
+        this.privateKey = loadPrivateKey(privateKeyBase64);
     }
 
     @Bean
@@ -53,6 +45,26 @@ public class JwtConfig {
     @Bean
     public JwtDecoder jwtDecoder() {
         return NimbusJwtDecoder.withPublicKey(publicKey).build();
+    }
+
+    private RSAPrivateKey loadPrivateKey(String privateKeyBase64) {
+        byte[] decoded = Base64.getDecoder().decode(privateKeyBase64);
+        try {
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            return (RSAPrivateKey) kf.generatePrivate(new PKCS8EncodedKeySpec(decoded));
+        } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private RSAPublicKey loadPublicKey(String publicKeyBase64) {
+        byte[] decoded = Base64.getDecoder().decode(publicKeyBase64);
+        try {
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            return (RSAPublicKey) kf.generatePublic(new X509EncodedKeySpec(decoded));
+        } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
