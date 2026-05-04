@@ -6,7 +6,7 @@ import { useAuth } from '@app/provider/AuthProvider.jsx';
 const MediasoupContext = createContext(undefined);
 
 export const MediasoupProvider = ({ children }) => {
-  const [consumers, setConsumers] = useState(new Map());
+  const [consumers, setConsumers] = useState(new Map()); // Map<userId, { video: consumer, audio: consumer }>
   const { token } = useAuth();
   const deviceRef = useRef(null);
   const socketRef = useRef(null);
@@ -36,25 +36,28 @@ export const MediasoupProvider = ({ children }) => {
     const socket = socketRef.current;
     if (!socket) return;
 
-    const handleNewProducer = ({ producerId }) => {
+    const handleNewProducer = ({ userId, producerId, kind }) => {
       console.log('New producer connected!');
       if (voiceChannelIdRef.current) {
-        consumeRemoteProducer(producerId);
+        consumeRemoteProducer(userId, producerId, kind);
       }
     };
 
     const handleProducerClosed = ({ remoteProducerId }) => {
       setConsumers((prev) => {
-        const newConsumers = new Map(prev);
+        const newMap = new Map(prev);
 
-        for (const [consumerId, consumer] of newConsumers) {
-          if (consumer.producerId === remoteProducerId) {
-            newConsumers.delete(consumerId);
-            break;
+        outerLoop:
+        for (const [userId, media] of newMap.entries()) {
+          for (const [kind, consumer] of Object.entries(media)) {
+            if (consumer?.producerId === remoteProducerId) {
+              media[kind] = null;
+              break outerLoop;
+            }
           }
         }
 
-        return newConsumers;
+        return newMap;
       });
     };
 
@@ -120,11 +123,14 @@ export const MediasoupProvider = ({ children }) => {
         .catch(errback);
     });
 
-    const producerIds = await emitWithAck('getProducers');
-    producerIds.forEach(consumeRemoteProducer);
+    const producersData = await emitWithAck('getProducers');
+
+    producersData.forEach(({ userId, producerId, kind }) => {
+      consumeRemoteProducer(userId, producerId, kind);
+    });
   };
 
-  const consumeRemoteProducer = async (remoteProducerId) => {
+  const consumeRemoteProducer = async (userId, remoteProducerId, kind) => {
     const params = await emitWithAck('consume', {
       rtpCapabilities: deviceRef.current.rtpCapabilities,
       remoteProducerId,
@@ -137,7 +143,13 @@ export const MediasoupProvider = ({ children }) => {
       rtpParameters: params.rtpParameters,
     });
 
-    setConsumers((prev) => new Map(prev).set(consumer.id, consumer));
+    setConsumers((prev) => {
+      const newMap = new Map(prev);
+      const userEntry = newMap.get(userId) || {};
+      userEntry[kind] = consumer;
+      newMap.set(userId, userEntry);
+      return newMap;
+    });
 
     socketRef.current.emit('consumerResume', { serverConsumerId: params.id });
   };

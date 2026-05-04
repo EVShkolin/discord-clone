@@ -46,7 +46,9 @@ const io = new Server(PORT);
 
 io.on('connection', async socket => {
   const token = socket.handshake.auth.token;
-  const { userId } = getDataFromToken(token);
+  const userId = getDataFromToken(token).userId;
+  if (!userId) return;
+
   console.log(`User ${userId} connected new socket ${socket.id}`);
 
   const connection = createConnection(socket, userId);
@@ -83,16 +85,20 @@ io.on('connection', async socket => {
 
   socket.on('getProducers', (data, callback) => {
     const room = rooms.get(connection.currentRoomId);
-    const producerIds = [];
+    const producersData = [];
     room.members.forEach((member, memberId) => {
       if (memberId !== connection.userId) {
         member.producers.forEach((producer) => {
-          producerIds.push(producer.id);
+          producersData.push({
+            userId: memberId,
+            producerId: producer.id,
+            kind: producer.kind
+          });
         });
       }
     });
 
-    callback(producerIds);
+    callback(producersData);
   });
 
   socket.on('producerTransportConnect', async ({ dtlsParameters }, callback) => {
@@ -108,7 +114,11 @@ io.on('connection', async socket => {
     const room = rooms.get(connection.currentRoomId);
     room.members.forEach((member) => {
       if (member.userId !== connection.userId) {
-        member.socket.emit('newProducer', { producerId: producer.id });
+        member.socket.emit('newProducer', {
+          userId: connection.userId,
+          producerId: producer.id,
+          kind
+        });
       }
     });
 
@@ -117,8 +127,6 @@ io.on('connection', async socket => {
       connection.producers = connection.producers.filter(p => p.id !== producer.id);
     });
 
-    // console.log(connection.userId, "added new producer:", producer.kind);
-    // console.log(`Producers in ${room.channelId} room has ${room.members.size} members and ${Array.from(room.members.values()).reduce((sum, member) => sum + member.producers.length, 0)} producers`)
     callback({ id: producer.id });
   });
 

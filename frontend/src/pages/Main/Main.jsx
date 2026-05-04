@@ -42,22 +42,6 @@ const Main = () => {
     </div>
   );
 
-  // if (isVoiceChannel()) {
-  //   return (
-  //     <div className={styles.appLayout}>
-  //       <NavigationPanel />
-  //       <VoiceChatPanel />
-  //     </div>
-  //   );
-  // }
-  //
-  // return (
-  //   <div className={styles.appLayout}>
-  //     <NavigationPanel />
-  //     <MessagePanel />
-  //     <MemberPanel />
-  //   </div>
-  // );
 };
 
 export default Main;

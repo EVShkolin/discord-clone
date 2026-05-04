@@ -1,5 +1,4 @@
 import { useMediasoup } from '@app/provider/MediasoupProvider.jsx';
-import { useMemo } from 'react';
 import { VideoFrame } from '@features/voice-chat/ui/VideoFrame/index.js';
 import { useAudio } from '@features/voice-chat/lib/useAudio.js';
 import { useVideo } from '@features/voice-chat/lib/useVideo.js';
@@ -7,13 +6,9 @@ import { useVideo } from '@features/voice-chat/lib/useVideo.js';
 import styles from './VoiceChatPanel.module.css';
 
 export const VoiceChatPanel = () => {
-  const { consumers } = useMediasoup();
+  const { consumers, leaveVoiceChannel } = useMediasoup();
   const { videoStream, isVideoOn, startVideo, shareScreen, isSharingScreen, stopVideo } = useVideo();
   const { isMuted, toggleVoice } = useAudio();
-
-  const consumerArray = useMemo(() => {
-    return Array.from(consumers.values());
-  }, [consumers]);
 
   return (
     <div className={styles.panel}>
@@ -23,12 +18,13 @@ export const VoiceChatPanel = () => {
         <button onClick={isSharingScreen ? stopVideo : shareScreen}>
           {isSharingScreen ? 'Stop sharing' : 'Share screen'}
         </button>
+        <button onClick={leaveVoiceChannel}>Покинуть комнату</button>
       </div>
 
-      {videoStream && <VideoFrame track={videoStream.getTracks()[0]} />}
+      {videoStream && <VideoFrame key='local' videoTrack={videoStream.getTracks()[0]} />}
 
-      {consumerArray.map((consumer) => (
-        <VideoFrame key={consumer.id} track={consumer.track} />
+      {Array.from(consumers, ([userId, data]) => (
+          <VideoFrame key={userId} videoTrack={data.video?.track} audioTrack={data.audio?.track} />
       ))}
     </div>
   );
