@@ -37,8 +37,8 @@ export const MediasoupProvider = ({ children }) => {
     if (!socket) return;
 
     const handleNewProducer = ({ userId, producerId, kind }) => {
-      console.log('New producer connected!');
       if (voiceChannelIdRef.current) {
+        console.log('New producer connected!');
         consumeRemoteProducer(userId, producerId, kind);
       }
     };

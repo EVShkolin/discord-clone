@@ -55,6 +55,16 @@ services:
       timeout: 10s
       retries: 20
 
+  mediasoup:
+    image: ghcr.io/${GIT_REPOSITORY}/mediasoup:latest
+    container_name: mediasoup
+    restart: unless-stopped
+    ports:
+      - "2000-2020:2000-2020/udp"
+      - "2000-2020:2000-2020/tcp"
+    env_file:
+      - .env
+
 volumes:
   pg_data:
 

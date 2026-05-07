@@ -43,3 +43,23 @@ jobs:
         run: |
           cd frontend
           npm run build
+
+  mediasoup:
+    name: Mediasoup CI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+      - name: Set up node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: |
+          cd mediasoup
+          npm ci --ignore-scripts
+      - name: Build
+        run: |
+          cd mediasoup
+          npm run build

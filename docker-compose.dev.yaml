@@ -23,6 +23,8 @@ services:
     container_name: app-backend
     ports:
       - "8081:8080"
+    env_file:
+      - .env
     environment:
       POSTGRES_HOST: app-db
       POSTGRES_PORT: 5432
@@ -55,6 +57,18 @@ services:
       interval: 5s
       timeout: 10s
       retries: 20
+
+  mediasoup:
+    build:
+      context: ./mediasoup
+      dockerfile: Dockerfile
+    container_name: mediasoup
+    ports:
+      - "4000:4000"
+      - "2000-2020:2000-2020/udp"
+      - "2000-2020:2000-2020/tcp"
+    env_file:
+      - .env
 
 volumes:
   pg_data:

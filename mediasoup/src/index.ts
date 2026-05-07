@@ -1,31 +1,60 @@
 import mediasoup from 'mediasoup';
-import { Server } from 'socket.io'
+import { Server, Socket } from 'socket.io';
 import { getDataFromToken } from './jwtUtils.js';
 import { createWebRtcTransport } from './createWebRtcTransport.js';
+import {
+  Consumer,
+  MediaKind,
+  Producer,
+  Router,
+  RouterRtpCodecCapability,
+  WebRtcTransport,
+  Worker,
+} from 'mediasoup/types';
+
+interface Room {
+  channelId: number,
+  router: Router,
+  members: Map<number, Connection>
+}
+
+interface Connection {
+  userId: number,
+  socket: Socket,
+  currentRoomId: number | null,
+  producerTransport: WebRtcTransport | null,
+  consumerTransport: WebRtcTransport | null,
+  producers: Producer[],
+  consumers: Map<string, Consumer>
+}
+
+interface ProducerData {
+  userId: number,
+  producerId: string,
+  kind: MediaKind
+}
 
 const PORT = Number(process.env.MEDIASOUP_PORT) || 4000;
-console.log(PORT)
+console.log('Server is running on port:', PORT);
 
-const rooms = new Map();
-const connections = new Map();
+const rooms = new Map<number, Room>();
+const connections = new Map<number, Connection>();
 
-const createWorker = async () => {
-  const newWorker = await mediasoup.createWorker({
-    rtcMinPort: 2000, rtcMaxPort: 2020,
-  })
-  console.log(`worker pid ${newWorker.pid}`)
+const createWorker = async (): Promise<Worker> => {
+  const newWorker: Worker = await mediasoup.createWorker();
+  console.log(`worker pid ${newWorker.pid}`);
 
-  newWorker.on('died', error => {
-    console.error('mediasoup worker has died');
+  newWorker.on('died', (error) => {
+    console.error('Mediasoup worker has died:', error);
     setTimeout(() => process.exit(1), 2000);
   });
 
   return newWorker;
 };
 
-const worker = await createWorker();
+const worker: Worker = await createWorker();
 
-const mediaCodecs = [
+const mediaCodecs: RouterRtpCodecCapability[] = [
   {
     kind: 'audio',
     mimeType: 'audio/opus',
@@ -44,14 +73,15 @@ const mediaCodecs = [
 
 const io = new Server(PORT);
 
-io.on('connection', async socket => {
+io.on('connection', async (socket) => {
   const token = socket.handshake.auth.token;
-  const userId = getDataFromToken(token).userId;
-  if (!userId) return;
+  const tokenData = getDataFromToken(token);
+  if (!tokenData || tokenData.userId == null) return;
 
+  const userId = tokenData.userId;
   console.log(`User ${userId} connected new socket ${socket.id}`);
 
-  const connection = createConnection(socket, userId);
+  const connection: Connection = createConnection(socket, userId);
   socket.emit('connectionSuccess', { socketId: socket.id });
 
   socket.on('joinRoom', async (voiceToken, callback) => {
@@ -64,8 +94,8 @@ io.on('connection', async socket => {
   });
 
   socket.on('createWebRtcTransport', async ({ consumer }, callback) => {
-    const room = rooms.get(connection.currentRoomId);
-    const transport = await createWebRtcTransport(room.router);
+    const room = rooms.get(connection.currentRoomId!);
+    const transport = await createWebRtcTransport(room!.router);
 
     if (consumer) {
       connection.consumerTransport = transport;
@@ -79,20 +109,21 @@ io.on('connection', async socket => {
         iceParameters: transport.iceParameters,
         iceCandidates: transport.iceCandidates,
         dtlsParameters: transport.dtlsParameters,
-      }
+      },
     });
   });
 
   socket.on('getProducers', (data, callback) => {
-    const room = rooms.get(connection.currentRoomId);
-    const producersData = [];
-    room.members.forEach((member, memberId) => {
+    const room = rooms.get(connection.currentRoomId!);
+    const producersData: ProducerData[] = [];
+
+    room!.members.forEach((member, memberId) => {
       if (memberId !== connection.userId) {
         member.producers.forEach((producer) => {
           producersData.push({
             userId: memberId,
             producerId: producer.id,
-            kind: producer.kind
+            kind: producer.kind,
           });
         });
       }
@@ -102,51 +133,51 @@ io.on('connection', async socket => {
   });
 
   socket.on('producerTransportConnect', async ({ dtlsParameters }, callback) => {
-    await connection.producerTransport.connect({ dtlsParameters });
+    await connection.producerTransport!.connect({ dtlsParameters });
     callback();
-    console.log(connection.userId, "connected producer transport");
+    console.log(connection.userId, 'connected producer transport');
   });
 
   socket.on('produce', async ({ kind, rtpParameters, appData }, callback) => {
-    const producer = await connection.producerTransport.produce({ kind, rtpParameters });
+    const producer = await connection.producerTransport!.produce({ kind, rtpParameters });
     connection.producers.push(producer);
 
-    const room = rooms.get(connection.currentRoomId);
-    room.members.forEach((member) => {
+    const room = rooms.get(connection.currentRoomId!);
+    room!.members.forEach((member) => {
       if (member.userId !== connection.userId) {
         member.socket.emit('newProducer', {
           userId: connection.userId,
           producerId: producer.id,
-          kind
+          kind,
         });
       }
     });
 
     producer.on('transportclose', () => {
       producer.close();
-      connection.producers = connection.producers.filter(p => p.id !== producer.id);
+      connection.producers = connection.producers.filter((p) => p.id !== producer.id);
     });
 
     callback({ id: producer.id });
   });
 
   socket.on('recvTransportConnect', async ({ dtlsParameters }, callback) => {
-    await connection.consumerTransport.connect({ dtlsParameters });
+    await connection.consumerTransport!.connect({ dtlsParameters });
     callback();
   });
 
   socket.on('consume', async ({ rtpCapabilities, remoteProducerId }, callback) => {
-    const router = rooms.get(connection.currentRoomId).router;
+    const router = rooms.get(connection.currentRoomId!)!.router;
     const consumerTransport = connection.consumerTransport;
 
     if (!router.canConsume({ producerId: remoteProducerId, rtpCapabilities })) {
       return;
     }
 
-    const consumer = await consumerTransport.consume({
+    const consumer = await consumerTransport!.consume({
       producerId: remoteProducerId,
       rtpCapabilities,
-      paused: true
+      paused: true,
     });
 
     connection.consumers.set(consumer.id, consumer);
@@ -161,26 +192,26 @@ io.on('connection', async socket => {
       connection.consumers.delete(consumer.id);
     });
 
-    console.log(connection.userId, "added new consumer", consumer.id);
+    console.log(connection.userId, 'added new consumer', consumer.id);
     callback({
       id: consumer.id,
       producerId: remoteProducerId,
       kind: consumer.kind,
-      rtpParameters: consumer.rtpParameters
+      rtpParameters: consumer.rtpParameters,
     });
   });
 
   socket.on('consumerResume', async ({ serverConsumerId }) => {
     const consumer = connection.consumers.get(serverConsumerId);
-    await consumer.resume();
+    if (consumer) await consumer.resume();
   });
 
   socket.on('closeProducer', ({ producerId }) => {
-    const producer = connection.producers.find(p => p.id === producerId);
+    const producer = connection.producers.find((p) => p.id === producerId);
     if (!producer) return;
 
     producer.close();
-    connection.producers = connection.producers.filter(p => p.id !== producerId);
+    connection.producers = connection.producers.filter((p) => p.id !== producerId);
     console.log(connection.userId, 'closed producer', producerId);
   });
 
@@ -190,13 +221,13 @@ io.on('connection', async socket => {
   });
 
   socket.on('disconnect', () => {
-    console.log("Socket disconnected", socket.id);
+    console.log('Socket disconnected', socket.id);
     leaveRoom(connection);
     connections.delete(connection.userId);
   });
 });
 
-const createConnection = (socket, userId) => {
+const createConnection = (socket: Socket, userId: number) => {
   const connection = {
     userId,
     socket,
@@ -204,47 +235,47 @@ const createConnection = (socket, userId) => {
     producerTransport: null,
     consumerTransport: null,
     producers: [],
-    consumers: new Map()
+    consumers: new Map(),
   };
 
   connections.set(userId, connection);
   return connection;
 };
 
-const createRoom = async (channelId) => {
-  if (rooms.has(channelId)) return rooms.get(channelId);
+const createRoom = async (channelId: number): Promise<Room> => {
+  if (rooms.has(channelId)) return rooms.get(channelId)!;
   const router = await worker.createRouter({ mediaCodecs });
 
   const room = {
     channelId,
     router,
-    members: new Map()
+    members: new Map(),
   };
 
   rooms.set(channelId, room);
   return room;
 };
 
-const joinRoom = async (channelId, connection) => {
-  const room = rooms.has(channelId) ? rooms.get(channelId) : await createRoom(channelId);
+const joinRoom = async (channelId: number, connection: Connection) => {
+  const room: Room = rooms.has(channelId) ? rooms.get(channelId)! : await createRoom(channelId);
   room.members.set(connection.userId, connection);
   connection.currentRoomId = channelId;
   return room;
 };
 
-const leaveRoom = (connection) => {
+const leaveRoom = (connection: Connection) => {
   for (const room of rooms.values()) {
     if (room.members.has(connection.userId)) {
-      connection.producers.forEach(p => p.close());
+      connection.producers.forEach((p) => p.close());
       connection.producers = [];
 
-      connection.consumers.forEach(c => c.close());
+      connection.consumers.forEach((c) => c.close());
       connection.consumers.clear();
 
       connection.producerTransport?.close();
       connection.consumerTransport?.close();
       connection.producerTransport = null;
-      connection.consumerTransport = null
+      connection.consumerTransport = null;
 
       room.members.delete(connection.userId);
       connection.currentRoomId = null;
@@ -252,4 +283,3 @@ const leaveRoom = (connection) => {
     }
   }
 };
-
