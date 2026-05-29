@@ -1,64 +1,27 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { io } from 'socket.io-client';
 import * as mediasoupClient from 'mediasoup-client';
-import { useAuth } from '@app/provider/AuthProvider.jsx';
+import { wsService } from '@shared/api/websocket/websocketClient.js';
+import { useVoiceSessionStore } from '@app/provider/voiceSessionStore.js';
 
 const MediasoupContext = createContext(undefined);
 
 export const MediasoupProvider = ({ children }) => {
-  const [consumers, setConsumers] = useState(new Map()); // Map<userId, { video: consumer, audio: consumer }>
-  const { token } = useAuth();
   const deviceRef = useRef(null);
-  const socketRef = useRef(null);
   const consumerTransportRef = useRef(null);
   const producerTransportRef = useRef(null);
-  const voiceChannelIdRef = useRef(null);
+
+  const { voiceChannelId, setVoiceChannelId, addConsumer, removeConsumer, reset } = useVoiceSessionStore();
 
   useEffect(() => {
-    const socket = io('/', {
-      auth: { token },
-    });
-    socketRef.current = socket;
-
-    socket.on('connectionSuccess', ({ socketId }) => {
-      console.log('Connected to mediasoup, socketId: ', socketId);
-    });
-
-    socket.on('disconnect', () => {});
-
-    return () => {
-      socket.disconnect();
-      socketRef.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    const socket = socketRef.current;
+    const socket = wsService.socket;
     if (!socket) return;
 
     const handleNewProducer = ({ userId, producerId, kind }) => {
-      if (voiceChannelIdRef.current) {
-        console.log('New producer connected!');
-        consumeRemoteProducer(userId, producerId, kind);
-      }
+      consumeRemoteProducer(userId, producerId, kind);
     };
 
     const handleProducerClosed = ({ remoteProducerId }) => {
-      setConsumers((prev) => {
-        const newMap = new Map(prev);
-
-        outerLoop:
-        for (const [userId, media] of newMap.entries()) {
-          for (const [kind, consumer] of Object.entries(media)) {
-            if (consumer?.producerId === remoteProducerId) {
-              media[kind] = null;
-              break outerLoop;
-            }
-          }
-        }
-
-        return newMap;
-      });
+      removeConsumer(remoteProducerId);
     };
 
     socket.on('newProducer', handleNewProducer);
@@ -68,26 +31,16 @@ export const MediasoupProvider = ({ children }) => {
       socket.off('newProducer', handleNewProducer);
       socket.off('producerClosed', handleProducerClosed);
     };
-  }, []);
+  }, [wsService.socket]);
 
-  const emitWithAck = (event, data) => {
-    return new Promise((resolve, reject) => {
-      socketRef.current.emit(event, data, (response) => {
-        if (response?.error) reject(response.error);
-        else resolve(response);
-      });
-    });
-  };
-
-  const joinVoiceChannel = async (channelId) => {
-    if (!socketRef.current) return;
-    if (channelId === voiceChannelIdRef.current) return;
+  const joinVoiceChannel = async (serverId, channelId) => {
+    if (!wsService.socket || channelId === voiceChannelId) return;
 
     await leaveVoiceChannel();
     try {
-      voiceChannelIdRef.current = channelId;
+      setVoiceChannelId(channelId);
 
-      const { rtpCapabilities } = await emitWithAck('joinRoom', { roomId: channelId });
+      const { rtpCapabilities } = await wsService.emitWithAck('joinRoom', { serverId, channelId });
 
       await createDevice(rtpCapabilities);
 
@@ -112,18 +65,19 @@ export const MediasoupProvider = ({ children }) => {
   };
 
   const createConsumerTransportAndConsume = async () => {
-    const { params } = await emitWithAck('createWebRtcTransport', { consumer: true });
+    const { params } = await wsService.emitWithAck('createWebRtcTransport', { consumer: true });
 
     const consumerTransport = deviceRef.current.createRecvTransport(params);
     consumerTransportRef.current = consumerTransport;
 
     consumerTransport.on('connect', ({ dtlsParameters }, callback, errback) => {
-      emitWithAck('recvTransportConnect', { dtlsParameters })
+      wsService
+        .emitWithAck('recvTransportConnect', { dtlsParameters })
         .then(() => callback())
         .catch(errback);
     });
 
-    const producersData = await emitWithAck('getProducers');
+    const producersData = await wsService.emitWithAck('getProducers');
 
     producersData.forEach(({ userId, producerId, kind }) => {
       consumeRemoteProducer(userId, producerId, kind);
@@ -131,7 +85,7 @@ export const MediasoupProvider = ({ children }) => {
   };
 
   const consumeRemoteProducer = async (userId, remoteProducerId, kind) => {
-    const params = await emitWithAck('consume', {
+    const params = await wsService.emitWithAck('consume', {
       rtpCapabilities: deviceRef.current.rtpCapabilities,
       remoteProducerId,
     });
@@ -143,27 +97,29 @@ export const MediasoupProvider = ({ children }) => {
       rtpParameters: params.rtpParameters,
     });
 
-    setConsumers((prev) => {
-      const newMap = new Map(prev);
-      const userEntry = newMap.get(userId) || {};
-      userEntry[kind] = consumer;
-      newMap.set(userId, userEntry);
-      return newMap;
-    });
+    if (!consumer.track) {
+      await new Promise((resolve) => {
+        consumer.once('track', () => {
+          console.log(`Track received for ${kind} from ${userId}`);
+          resolve();
+        });
+      });
+    }
 
-    socketRef.current.emit('consumerResume', { serverConsumerId: params.id });
+    addConsumer(userId, kind, consumer);
+
+    wsService.socket.emit('consumerResume', { serverConsumerId: params.id });
   };
 
   const createProducerTransport = async () => {
-    const { params } = await emitWithAck('createWebRtcTransport', { consumer: false });
+    const { params } = await wsService.emitWithAck('createWebRtcTransport', { consumer: false });
 
     const producerTransport = deviceRef.current.createSendTransport(params);
     producerTransportRef.current = producerTransport;
-    console.log('producerTransport:', producerTransport);
 
     producerTransport.on('produce', async (parameters, callback, errback) => {
       try {
-        const { id } = await emitWithAck('produce', {
+        const { id } = await wsService.emitWithAck('produce', {
           kind: parameters.kind,
           rtpParameters: parameters.rtpParameters,
           appData: parameters.appData,
@@ -176,7 +132,7 @@ export const MediasoupProvider = ({ children }) => {
 
     producerTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
       try {
-        await emitWithAck('producerTransportConnect', {
+        await wsService.emitWithAck('producerTransportConnect', {
           dtlsParameters,
           serverProducerTransportId: params.id,
         });
@@ -194,7 +150,7 @@ export const MediasoupProvider = ({ children }) => {
   };
 
   const closeProducer = (producerId) => {
-    socketRef.current.emit('closeProducer', { producerId });
+    wsService.socket.emit('closeProducer', { producerId });
   };
 
   const leaveVoiceChannel = async () => {
@@ -203,10 +159,9 @@ export const MediasoupProvider = ({ children }) => {
     consumerTransportRef.current = null;
     producerTransportRef.current = null;
 
-    setConsumers(new Map());
-    voiceChannelIdRef.current = null;
+    reset();
 
-    await emitWithAck('leaveRoom');
+    await wsService.emitWithAck('leaveRoom');
   };
 
   return (
@@ -214,10 +169,8 @@ export const MediasoupProvider = ({ children }) => {
       value={{
         joinVoiceChannel,
         leaveVoiceChannel,
-        consumers,
         createProducer,
         closeProducer,
-        voiceChannelIdRef,
       }}
     >
       {children}

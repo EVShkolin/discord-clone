@@ -4,7 +4,7 @@ interface TokenPayload {
   userId: number;
 }
 
-export const getDataFromToken = (token:string): TokenPayload | null => {
+export const getDataFromToken = (token: string): TokenPayload | null => {
   const pubKey = process.env.JWT_PUBLIC_KEY;
   if (!pubKey) throw new Error('Public key is not defined');
 

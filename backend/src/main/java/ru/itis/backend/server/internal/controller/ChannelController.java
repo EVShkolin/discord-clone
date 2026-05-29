@@ -16,6 +16,11 @@ public class ChannelController {
 
     private final ChannelService channelService;
 
+    @GetMapping("/{channelId}")
+    public ResponseEntity<ChannelDto> findById(@PathVariable Long serverId, @PathVariable Long channelId) {
+        return ResponseEntity.ok(channelService.findById(channelId));
+    }
+
     @PostMapping
     public ResponseEntity<ChannelDto> create(@PathVariable Long serverId, @RequestBody @Valid ChannelDto channelDto) {
         return ResponseEntity
@@ -29,7 +34,6 @@ public class ChannelController {
         return ResponseEntity.ok(channelService.update(channelId, channelDto));
     }
 
-    @Transactional
     @DeleteMapping("/{channelId}")
     public ResponseEntity<Void> softDelete(@PathVariable Long channelId) {
         channelService.softDelete(channelId);

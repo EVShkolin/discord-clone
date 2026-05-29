@@ -6,6 +6,7 @@ import ru.itis.backend.server.api.dto.ServerMemberDto;
 import ru.itis.backend.server.internal.model.ServerMember;
 import ru.itis.backend.user.api.UserDto;
 
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -26,6 +27,12 @@ public class ServerMemberMapper {
                 member.getServer().getId(),
                 member.getCreatedAt()
         );
+    }
+
+    public List<ServerMemberDto> toDtoList(List<ServerMember> members, Map<Long, UserDto> users) {
+        return members.stream()
+                .map(m -> toDto(m, users.get(m.getUserId())))
+                .toList();
     }
 
     public Page<ServerMemberDto> toPageDto(Page<ServerMember> members, Map<Long, UserDto> users) {

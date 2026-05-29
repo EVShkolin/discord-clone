@@ -6,11 +6,11 @@ import styles from './Main.module.css';
 import { useParams } from 'react-router';
 import { useCurrentUserServers } from '@features/navigation/lib/useCurrentUserServers.js';
 import { VoiceChatPanel } from '@features/voice-chat/index.js';
-import { useMediasoup } from '@app/provider/MediasoupProvider.jsx';
+import {useVoiceSessionStore} from "@app/provider/voiceSessionStore.js";
 
 const Main = () => {
   const { serverId, channelId } = useParams();
-  const { voiceChannelIdRef } = useMediasoup();
+  const { voiceChannelId } = useVoiceSessionStore();
   const { data: servers } = useCurrentUserServers();
 
   const isVoiceChannel = () => {
@@ -32,7 +32,7 @@ const Main = () => {
   return (
     <div className={styles.appLayout}>
       <NavigationPanel />
-      {voiceChannelIdRef.current && (
+      {voiceChannelId && (
         <div style={{ display: isVoiceChannel() ? 'block' : 'none' }}>
           <VoiceChatPanel />
         </div>
@@ -41,7 +41,6 @@ const Main = () => {
       {!isVoiceChannel() && <MemberPanel />}
     </div>
   );
-
 };
 
 export default Main;

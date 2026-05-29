@@ -6,4 +6,8 @@ public class ObjectNotFoundException extends RuntimeException {
         super(objectName + " with id " + id + " not found");
     }
 
+    public ObjectNotFoundException(String message) {
+        super(message);
+    }
+
 }

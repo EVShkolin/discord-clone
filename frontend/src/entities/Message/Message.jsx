@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '@app/provider/AuthProvider.jsx';
 import { useMessageActions } from '@features/message-list/lib/useMessageActions.js';
 import { useParams } from 'react-router';
+import { Avatar } from '@shared/ui/Avatar';
 
 const isEdited = (createdAt, updatedAt) => {
   const created = new Date(createdAt).getTime();
@@ -48,14 +49,7 @@ const Message = ({ message }) => {
 
   return (
     <div className={`${styles.message} ${ownMessage ? styles.ownMessage : ''}`}>
-      <img
-        className={styles.avatar}
-        src={
-          message.author.avatarUrl ||
-          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRNY2BGn3ylJRLM2yL2_f_q_g9iEOOR_t_kAQ&s'
-        }
-        alt="avatar"
-      />
+      <Avatar avatarUrl={message.author.avatarUrl} size="40" />
       <div className={styles.messageContent}>
         <div className={styles.messageInfo}>
           <span className={styles.author}>{message.author.name}</span>

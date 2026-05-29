@@ -1,53 +1,51 @@
-import { useRef, useState } from 'react';
 import { useMediasoup } from '@app/provider/MediasoupProvider.jsx';
+import { useVoiceSessionStore } from '@app/provider/voiceSessionStore.js';
 
 export const useAudio = () => {
-  const [isMicrophoneAllowed, setIsMicrophoneAllowed] = useState(false); // need to check it first
-  const [isMuted, setIsMuted] = useState(true);
-  const [isDeafen, setIsDeafen] = useState(false);
-  const audioProducerRef = useRef(null);
-  const audioStreamRef = useRef(null);
-  const { createProducer, consumers } = useMediasoup();
+  const { createProducer } = useMediasoup();
+  const {
+    isMuted,
+    isDeafen,
+    audioProducer,
+    audioStream,
+    consumers,
+    setIsMuted,
+    setIsDeafen,
+    setAudioProducer,
+    setAudioStream,
+  } = useVoiceSessionStore();
 
   const toggleVoice = () => {
-    if (!isMicrophoneAllowed) {
+    if (!audioStream) {
       requestAudioStream();
     } else {
-      isMuted ? audioProducerRef.current.resume() : audioProducerRef.current.pause();
-      setIsMuted((prev) => !prev);
+      isMuted ? audioProducer.resume() : audioProducer.pause();
+      setIsMuted(!isMuted);
     }
   };
 
   const requestAudioStream = async () => {
-    if (isMicrophoneAllowed) return;
+    if (audioStream) return;
 
-    const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    audioStreamRef.current = audioStream;
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    setAudioStream(stream);
 
-    const audioParams = { track: audioStream.getTracks()[0] };
-    audioProducerRef.current = await createProducer(audioParams);
-
-    setIsMicrophoneAllowed(true);
+    const audioParams = { track: stream.getTracks()[0] };
+    setAudioProducer(await createProducer(audioParams));
     setIsMuted(false);
   };
 
   const toggleDeafen = () => {
     consumers.forEach((consumer) => {
       if (isDeafen) {
-        consumer.resume();
+        consumer.audio?.resume();
       } else {
-        consumer.pause();
+        consumer.audio?.pause();
       }
     });
 
-    setIsDeafen((prev) => !prev);
+    setIsDeafen(!isDeafen);
   };
 
-  return {
-    isMuted,
-    toggleVoice,
-    isDeafen,
-    toggleDeafen,
-    requestAudioStream,
-  };
+  return { toggleVoice, toggleDeafen, requestAudioStream };
 };

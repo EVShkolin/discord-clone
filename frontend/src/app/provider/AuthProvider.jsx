@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { isTokenValid } from '@shared/utils/tokenValidator.js';
 import { webSocketService } from '@features/websocket/lib/websocket.js';
+import { wsService } from '@shared/api/websocket/websocketClient.js';
 
 const AuthContext = createContext(undefined);
 
@@ -28,8 +29,11 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (isAuthenticated()) {
+      wsService.connect(token);
       webSocketService.connect(token);
     }
+
+    return () => wsService.disconnect();
   }, [token]);
 
   const isAuthenticated = () => token && isTokenValid(token);

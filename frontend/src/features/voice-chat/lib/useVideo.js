@@ -1,13 +1,18 @@
-import { useRef, useState } from 'react';
 import { useMediasoup } from '@app/provider/MediasoupProvider.jsx';
+import { useVoiceSessionStore } from '@app/provider/voiceSessionStore.js';
 
 export const useVideo = () => {
-  const [isVideoOn, setIsVideoOn] = useState(false);
-  const [isSharingScreen, setIsSharingScreen] = useState(false);
-  const [videoStream, setVideoStream] = useState(null);
-  const videoProducerRef = useRef(null);
-  const videoStreamRef = useRef(null);
   const { createProducer, closeProducer } = useMediasoup();
+  const {
+    isVideoOn,
+    isSharingScreen,
+    videoProducer,
+    videoStream,
+    setIsVideoOn,
+    setIsSharingScreen,
+    setVideoProducer,
+    setVideoStream,
+  } = useVoiceSessionStore();
 
   const startVideo = async () => {
     if (isVideoOn) return;
@@ -18,7 +23,6 @@ export const useVideo = () => {
         height: { min: 400, max: 1080 },
       },
     });
-    videoStreamRef.current = stream;
     setVideoStream(stream);
 
     let videoParams = {
@@ -32,8 +36,8 @@ export const useVideo = () => {
       },
     };
     videoParams = { track: stream.getTracks()[0], ...videoParams };
-    videoProducerRef.current = await createProducer(videoParams);
 
+    setVideoProducer(await createProducer(videoParams));
     setIsVideoOn(true);
   };
 
@@ -42,11 +46,10 @@ export const useVideo = () => {
 
     stopVideo();
     const stream = await navigator.mediaDevices.getDisplayMedia({ cursor: true });
-    videoStreamRef.current = stream;
     setVideoStream(stream);
 
     const track = stream.getTracks()[0];
-    videoProducerRef.current = await createProducer({ track });
+    setVideoProducer(await createProducer({ track }));
 
     track.onended = () => stopVideo();
 
@@ -54,26 +57,18 @@ export const useVideo = () => {
   };
 
   const stopVideo = () => {
-    if (videoProducerRef.current) {
-      videoProducerRef.current.close();
-      closeProducer(videoProducerRef.current.id);
-      videoProducerRef.current = null;
+    if (videoProducer) {
+      videoProducer.close();
+      closeProducer(videoProducer.id);
+      setVideoProducer(null);
     }
-    if (videoStreamRef.current) {
-      videoStreamRef.current.getTracks().forEach((track) => track.stop());
-      videoStreamRef.current = null;
+    if (videoStream) {
+      videoStream.getTracks().forEach((track) => track.stop());
+      setVideoStream(null);
     }
-    setVideoStream(null);
     setIsVideoOn(false);
     setIsSharingScreen(false);
   };
 
-  return {
-    isVideoOn,
-    startVideo,
-    shareScreen,
-    isSharingScreen,
-    stopVideo,
-    videoStream,
-  };
+  return { startVideo, shareScreen, stopVideo };
 };
