@@ -1,7 +1,7 @@
 import express, { Express } from 'express';
 import { VoiceChatMember } from './messages/serverRequestTypes.js';
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
-import { Channel } from 'node:diagnostics_channel';
+import { Channel } from './messages/kafkaEvents.js';
 
 const TOKEN = process.env.MEDIASOUP_JWT;
 
