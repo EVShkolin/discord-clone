@@ -21,12 +21,31 @@ spring:
 
   banner: banner.txt
 
+  kafka:
+    bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      properties:
+        spring.json.type.mapping: > 
+          messageCreated:ru.itis.backend.message.api.event.MessageCreatedEvent,
+          messageUpdated:ru.itis.backend.message.api.event.MessageUpdatedEvent,
+          messageDeleted:ru.itis.backend.message.api.event.MessageDeletedEvent,
+          channelCreated:ru.itis.backend.server.api.event.ChannelCreatedEvent,
+          channelUpdated:ru.itis.backend.server.api.event.ChannelUpdatedEvent,
+          channelDeleted:ru.itis.backend.server.api.event.ChannelDeletedEvent,
+          memberJoined:ru.itis.backend.server.api.event.MemberJoinedEvent,
+          memberLeft:ru.itis.backend.server.api.event.MemberLeftEvent,
+          serverUpdated:ru.itis.backend.server.api.event.ServerUpdatedEvent
+
 logging:
   level:
     ru.itis.backend: DEBUG
 
 jwt:
   seed: ${JWT_SEED:superDuperSecureSeedForGeneratingJwt}
+  private-key: ${JWT_PRIVATE_KEY}
+  public-key: ${JWT_PUBLIC_KEY}
 
 websocket:
   allowed-origins: ${SERVER_URL:http://localhost:5173}

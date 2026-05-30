@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { isTokenValid } from '@shared/utils/tokenValidator.js';
-import { webSocketService } from '@features/websocket/lib/websocket.js';
+import { wsService } from '@shared/api/websocket/websocketClient.js';
 
 const AuthContext = createContext(undefined);
 
@@ -28,8 +28,10 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (isAuthenticated()) {
-      webSocketService.connect(token);
+      wsService.connect(token);
     }
+
+    return () => wsService.disconnect();
   }, [token]);
 
   const isAuthenticated = () => token && isTokenValid(token);
@@ -39,7 +41,6 @@ export const AuthProvider = ({ children }) => {
     setToken(token);
     localStorage.setItem('user', JSON.stringify(user));
     localStorage.setItem('jwt', token);
-    webSocketService.connect(token);
   };
 
   const logout = () => {
@@ -47,7 +48,7 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     localStorage.removeItem('user');
     localStorage.removeItem('jwt');
-    webSocketService.disconnect();
+    wsService.disconnect();
   };
 
   useEffect(() => {

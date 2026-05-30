@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from 'react-router';
 import { useAuth } from '../provider/AuthProvider.jsx';
+import { MediasoupProvider } from '@app/provider/MediasoupProvider.jsx';
 
 const PrivateRoute = () => {
   const { logout, isAuthenticated } = useAuth();
@@ -8,7 +9,11 @@ const PrivateRoute = () => {
     logout();
     return <Navigate to="/login" replace />;
   }
-  return <Outlet />;
+  return (
+    <MediasoupProvider>
+      <Outlet />
+    </MediasoupProvider>
+  );
 };
 
 export default PrivateRoute;

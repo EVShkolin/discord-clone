@@ -37,6 +37,18 @@ public class ChannelServiceImpl implements ChannelService {
     }
 
     @Override
+    public ChannelDto findById(Long serverId, Long channelId) {
+        log.debug("IN ChannelServiceImpl find by id {} in server {}", channelId, serverId);
+        Channel channel = channelRepository.findById(channelId)
+                .orElseThrow(() -> new ObjectNotFoundException("Channel", channelId));
+
+        if (!channel.getServer().getId().equals(serverId))
+            throw new ObjectNotFoundException("Channel " + channelId + " not found in server " + serverId);
+
+        return channelMapper.toDto(channel);
+    }
+
+    @Override
     public List<ChannelDto> findAllByServerId(Long serverId) {
         log.debug("IN ChannelServiceImpl find all channels in server {}", serverId);
         List<Channel> channels = channelRepository.findAllByServerId(serverId);
@@ -71,7 +83,7 @@ public class ChannelServiceImpl implements ChannelService {
                 .name("General")
                 .type(ChannelType.VOICE)
                 .server(server)
-                .userLimit(0)
+                .userLimit(6)
                 .build();
         channels.add(channelRepository.save(voiceChannel));
         return channelMapper.toDtoList(channels);

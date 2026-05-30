@@ -1,6 +1,7 @@
 .appLayout {
   display: grid;
-  grid-template-columns: 375px auto 264px;
+  /*grid-template-columns: 375px auto 264px;*/
+  grid-template-columns: 275px auto 264px;
   height: 100vh;
   overflow: hidden;
   background-color: lightslategray;

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -33,13 +34,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MessageServiceImpl implements MessageService {
 
+    private final String MESSAGE_TOPIC = "messages";
+
     private final MessageRepository messageRepository;
 
     private final MessageMapper mapper;
 
     private final UserService userService;
 
-    private final ApplicationEventPublisher publisher;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     private final ChannelService channelService;
 
@@ -70,7 +73,7 @@ public class MessageServiceImpl implements MessageService {
         messageDto = mapper.toDto(message, author);
 
         Long serverId = channelService.findById(message.getChannelId()).getServerId();
-        publisher.publishEvent(new MessageCreatedEvent(messageDto, serverId));
+        kafkaTemplate.send(MESSAGE_TOPIC, new MessageCreatedEvent(messageDto, serverId));
         return messageDto;
     }
 
@@ -91,7 +94,7 @@ public class MessageServiceImpl implements MessageService {
         MessageDto dto = mapper.toDto(message, userDto);
 
         Long serverId = channelService.findById(message.getChannelId()).getServerId();
-        publisher.publishEvent(new MessageUpdatedEvent(dto, serverId));
+        kafkaTemplate.send(MESSAGE_TOPIC, new MessageUpdatedEvent(dto, serverId));
         return dto;
 
     }
@@ -104,8 +107,6 @@ public class MessageServiceImpl implements MessageService {
 
         Long serverId = channelService.findById(message.getChannelId()).getServerId();
         messageRepository.softDelete(id);
-        publisher.publishEvent(
-                new MessageDeletedEvent(serverId, message.getChannelId(), message.getId())
-        );
+        kafkaTemplate.send(MESSAGE_TOPIC, new MessageDeletedEvent(serverId, message.getChannelId(), message.getId()));
     }
 }

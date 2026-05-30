@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from 'react-router';
 import Login from '@pages/Login/Login.jsx';
 import PrivateRoute from '@app/routing/PrivateRoute.jsx';
 import Main from '@pages/Main/Main.jsx';
+import { MediasoupProvider } from '@app/provider/MediasoupProvider.jsx';
 
 export const AppRouter = () => {
   return (

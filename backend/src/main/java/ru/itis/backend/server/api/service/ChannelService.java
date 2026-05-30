@@ -9,6 +9,8 @@ public interface ChannelService {
 
     ChannelDto findById(Long id);
 
+    ChannelDto findById(Long serverId, Long channelId);
+
     List<ChannelDto> findAllByServerId(Long serverId);
 
     ChannelDto create(Long serverId, ChannelDto channelDto);

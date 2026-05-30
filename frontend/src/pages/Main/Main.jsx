@@ -4,9 +4,20 @@ import { MemberPanel } from '@features/member-actions';
 
 import styles from './Main.module.css';
 import { useParams } from 'react-router';
+import { useCurrentUserServers } from '@features/navigation/lib/useCurrentUserServers.js';
+import { VoiceChatPanel } from '@features/voice-chat/index.js';
+import {useVoiceSessionStore} from "@app/provider/voiceSessionStore.js";
 
 const Main = () => {
   const { serverId, channelId } = useParams();
+  const { voiceChannelId } = useVoiceSessionStore();
+  const { data: servers } = useCurrentUserServers();
+
+  const isVoiceChannel = () => {
+    const server = servers?.find((s) => s.id === Number(serverId));
+    const channel = server?.channels.find((c) => c.id === Number(channelId));
+    return channel && channel.type.toLowerCase() === 'voice';
+  };
 
   if (!serverId || !channelId) {
     return (
@@ -21,8 +32,13 @@ const Main = () => {
   return (
     <div className={styles.appLayout}>
       <NavigationPanel />
-      <MessagePanel />
-      <MemberPanel />
+      {voiceChannelId && (
+        <div style={{ display: isVoiceChannel() ? 'block' : 'none' }}>
+          <VoiceChatPanel />
+        </div>
+      )}
+      {!isVoiceChannel() && <MessagePanel />}
+      {!isVoiceChannel() && <MemberPanel />}
     </div>
   );
 };
