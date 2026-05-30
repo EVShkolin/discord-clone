@@ -1,6 +1,6 @@
 import styles from './ServerIcon.module.css';
 
-const ServerIcon = ({ iconUrl }) => {
+export const ServerIcon = ({ iconUrl }) => {
   return (
     <div className={styles.wrapper}>
       <img

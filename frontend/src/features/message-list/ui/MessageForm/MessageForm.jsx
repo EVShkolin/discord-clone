@@ -2,6 +2,7 @@ import styles from './MessageForm.module.css';
 import { useParams } from 'react-router';
 import { useState } from 'react';
 import { useMessageActions } from '@features/message-list/lib/useMessageActions.js';
+import { SendIcon } from '@shared/assets/SendIcon.jsx';
 
 const MessageForm = () => {
   const { channelId } = useParams();
@@ -24,7 +25,9 @@ const MessageForm = () => {
   return (
     <form className={styles.messageForm} onSubmit={handleSubmit}>
       <input className={styles.textarea} value={text} onChange={(e) => setText(e.target.value)} />
-      <button className={styles.sendBtn}>Send</button>
+      <button className={styles.sendBtn}>
+        <SendIcon />
+      </button>
     </form>
   );
 };

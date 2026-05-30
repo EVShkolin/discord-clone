@@ -6,7 +6,8 @@ import styles from './Main.module.css';
 import { useParams } from 'react-router';
 import { useCurrentUserServers } from '@features/navigation/lib/useCurrentUserServers.js';
 import { VoiceChatPanel } from '@features/voice-chat/index.js';
-import {useVoiceSessionStore} from "@app/provider/voiceSessionStore.js";
+import { useVoiceSessionStore } from '@app/provider/voiceSessionStore.js';
+import {FindServersPanel} from "@features/server-actions/ui/FindServersPanel/index.js";
 
 const Main = () => {
   const { serverId, channelId } = useParams();
@@ -23,7 +24,7 @@ const Main = () => {
     return (
       <div className={styles.appLayout}>
         <NavigationPanel serverId={serverId} channelId={channelId} />
-        <div></div>
+        <FindServersPanel />
         <div></div>
       </div>
     );

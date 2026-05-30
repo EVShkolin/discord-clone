@@ -1,0 +1,10 @@
+.panel {
+    background-color: #323339;
+    padding: 20px;
+    border-radius: 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    min-height: 100vh;
+    overflow-y: auto;
+}

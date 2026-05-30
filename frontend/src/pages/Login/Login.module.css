@@ -1,6 +1,90 @@
 .layout {
+  min-height: 100vh;
   display: flex;
-  justify-content: center;
   align-items: center;
-  background-color: lightslategray;
+  justify-content: center;
+  background-color: #1e1f22;
+  font-family: 'gg sans', 'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.layout form {
+  background-color: #393a41;
+  border-radius: 12px;
+  padding: 32px 28px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.layout form h1 {
+  color: white;
+  text-align: center;
+}
+
+.layout form label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #b5bac1;
+  margin-bottom: 6px;
+  margin-top: 16px;
+}
+
+.layout form input {
+  width: 100%;
+  padding: 12px 16px;
+  background-color: #35353c;
+  border: none;
+  border-radius: 8px;
+  color: #f2f3f5;
+  font-size: 16px;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+  outline: none;
+}
+
+.layout form input:focus {
+  background-color: #3e3e46;
+  outline: 2px solid #7289da7f;
+}
+
+.layout form button[type='submit'] {
+  width: 100%;
+  background-color: #5865f2;
+  color: white;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  margin-top: 24px;
+  transition: background-color 0.2s ease;
+}
+
+.layout form button:hover {
+  background-color: #4752c4;
+}
+
+.layout form p {
+  text-align: center;
+  font-size: 14px;
+  color: #b5bac1;
+  margin-top: 24px;
+}
+
+.layout form a {
+  color: #00a8fc;
+  text-decoration: none;
+}
+
+.layout form input:-webkit-autofill,
+.layout form input:-webkit-autofill:hover,
+.layout form input:-webkit-autofill:focus,
+.layout form input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #35353c inset !important;
+  -webkit-text-fill-color: #f2f3f5 !important;
+  caret-color: #f2f3f5;
+  background-color: #35353c !important;
 }

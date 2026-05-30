@@ -11,7 +11,6 @@ const LoginForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const data = await auth.login(email, password);
       const { user, token } = data;

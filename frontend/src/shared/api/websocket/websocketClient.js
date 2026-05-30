@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client';
 import { useVoiceMembersStore } from '@entities/channel/model/voiceMembersStore.js';
-import {addMessageToCache, deleteMessageFromCache, updateMessageInCache} from "@features/message-list/index.js";
+import { addMessageToCache, deleteMessageFromCache, updateMessageInCache } from '@features/message-list/index.js';
 
 class WebSocketService {
   socket = null;
@@ -35,14 +35,13 @@ class WebSocketService {
   }
 
   subscribeToServer(serverId) {
-    this
-        .emitWithAck('subscribeToServer', { serverId: Number(serverId) })
-        .then((res) => {
-          useVoiceMembersStore.getState().setVoiceChatMembers(serverId, res);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+    this.emitWithAck('subscribeToServer', { serverId: Number(serverId) })
+      .then((res) => {
+        useVoiceMembersStore.getState().setVoiceChatMembers(serverId, res);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }
 
   async waitForConnection() {
@@ -81,7 +80,7 @@ class WebSocketService {
 
     this.socket.on('messageDeleted', ({ channelId, messageId }) => {
       deleteMessageFromCache(channelId, messageId);
-    })
+    });
   }
 }
 
