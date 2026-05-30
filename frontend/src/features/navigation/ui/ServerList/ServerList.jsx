@@ -1,5 +1,5 @@
 import styles from './ServerList.module.css';
-import ServerIcon from '@entities/ServerIcon/ServerIcon.jsx';
+import ServerIcon from '@entities/server/ui/ServerIcon/ServerIcon.jsx';
 import { useNavigate, useParams } from 'react-router';
 import { useAuth } from '@app/provider/AuthProvider.jsx';
 import { ServerCreateModal } from '@features/server-actions';

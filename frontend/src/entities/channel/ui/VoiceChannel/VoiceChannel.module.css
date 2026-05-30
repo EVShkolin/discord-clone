@@ -4,10 +4,66 @@
   border-radius: 4px;
   cursor: pointer;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  background-color: transparent;
+  transition: background-color 0.1s ease;
 }
 
 .channel:hover {
   background-color: #3c3f45;
   color: white;
+}
+
+.channelHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.channelName {
+  flex: 1;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memberCount {
+  font-size: 12px;
+  color: #b5bac1;
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 2px 6px;
+  border-radius: 12px;
+  line-height: 1.2;
+}
+
+.membersList {
+  margin-top: 8px;
+  margin-left: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.member {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 6px;
+  transition: background-color 0.1s;
+}
+
+.member:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.memberName {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

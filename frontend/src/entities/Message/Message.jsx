@@ -5,6 +5,8 @@ import { useAuth } from '@app/provider/AuthProvider.jsx';
 import { useMessageActions } from '@features/message-list/lib/useMessageActions.js';
 import { useParams } from 'react-router';
 import { Avatar } from '@shared/ui/Avatar';
+import { EditIcon } from '@shared/assets/EditIcon.jsx';
+import { DeleteIcon } from '@shared/assets/DeleteIcon.jsx';
 
 const isEdited = (createdAt, updatedAt) => {
   const created = new Date(createdAt).getTime();
@@ -57,10 +59,10 @@ const Message = ({ message }) => {
           <span>{isEdited(message.createdAt, message.updatedAt) && ' (edited)'}</span>
           <div className={styles.actions}>
             <button className={styles.actionBtn} onClick={() => setIsEditing(true)}>
-              U
+              <EditIcon />
             </button>
             <button className={styles.actionBtn} onClick={() => deleteMessage.mutateAsync(message.id)}>
-              D
+              <DeleteIcon />
             </button>
           </div>
         </div>

@@ -13,21 +13,23 @@ export const VoiceChannel = ({ channel, onClick }) => {
 
   return (
     <li className={style.channel} onClick={onClick}>
-      <div>
+      <div className={style.channelHeader}>
         <VoiceChannelIcon />
-        <p>{channel.name}</p>
-        <p>
+        <span className={style.channelName}>{channel.name}</span>
+        <span className={style.memberCount}>
           {voiceChatMembers.length}/{channel.userLimit}
-        </p>
+        </span>
       </div>
-      <div>
-        {voiceChatMembers.map((m) => (
-          <div key={m.id}>
-            <Avatar avatarUrl={m.avatarUrl} size={24}></Avatar>
-            <p>{m.name}</p>
-          </div>
-        ))}
-      </div>
+      {voiceChatMembers.length > 0 && (
+        <div className={style.membersList}>
+          {voiceChatMembers.map((member) => (
+            <div key={member.id} className={style.member}>
+              <Avatar avatarUrl={member.avatarUrl} size={24} />
+              <span className={style.memberName}>{member.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </li>
   );
 };

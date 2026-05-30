@@ -1,14 +1,14 @@
 import { useEffect, useRef } from 'react';
 import styles from './VideoFrame.module.css';
 import { useAudioLevel } from '@features/voice-chat/lib/useAudioLevel.js';
-import {Avatar} from "@shared/ui/Avatar/index.js";
-import {useVoiceSessionStore} from "@app/provider/voiceSessionStore.js";
+import { Avatar } from '@shared/ui/Avatar/index.js';
+import { useVoiceSessionStore } from '@app/provider/voiceSessionStore.js';
 
 export const VideoFrame = ({ member }) => {
   const videoRef = useRef(null);
   const audioRef = useRef(null);
 
-  const consumer = useVoiceSessionStore(s => s.consumers.get(member.userId));
+  const consumer = useVoiceSessionStore((s) => s.consumers.get(member.userId));
   const videoTrack = consumer?.video?.track;
   const audioTrack = consumer?.audio?.track;
   const isSpeaking = useAudioLevel(audioTrack);
@@ -51,10 +51,10 @@ export const VideoFrame = ({ member }) => {
       {videoTrack ? (
         <video className={styles.video} ref={videoRef} autoPlay playsInline muted />
       ) : (
-          <div className={styles.placeholder}>
-            <Avatar avatarUrl={member.avatarUrl} size={40} />
-            <span>{member.name}</span>
-          </div>
+        <div className={styles.placeholder}>
+          <Avatar avatarUrl={member.avatarUrl} size={40} />
+          <span>{member.name}</span>
+        </div>
       )}
 
       <audio ref={audioRef} autoPlay />

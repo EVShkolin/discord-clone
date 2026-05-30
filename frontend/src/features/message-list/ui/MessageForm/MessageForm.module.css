@@ -17,4 +17,15 @@
 }
 
 .sendBtn {
+  background-color: transparent;
+  border: none;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  transition: all 0.2s ease;
+  color: #999aa1;
+}
+
+.sendBtn:hover {
+  transform: scale(1.15);
 }

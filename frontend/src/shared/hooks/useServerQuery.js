@@ -7,3 +7,10 @@ export const useServerQuery = (userId) => {
     queryFn: () => serverApi.getAll(userId),
   });
 };
+
+export const useAvailableServers = (userId) => {
+  return useQuery({
+    queryKey: ['servers', 'available'],
+    queryFn: () => serverApi.findAvailable(userId)
+  });
+};

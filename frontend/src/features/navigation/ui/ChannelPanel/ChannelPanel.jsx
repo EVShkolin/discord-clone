@@ -4,7 +4,7 @@ import { useCurrentUserServers } from '@features/navigation/lib/useCurrentUserSe
 import { useMediasoup } from '@app/provider/MediasoupProvider.jsx';
 import { useVideo } from '@features/voice-chat/lib/useVideo.js';
 import { VoiceChannel } from '@entities/channel/ui/VoiceChannel/index.js';
-import {useVoiceSessionStore} from "@app/provider/voiceSessionStore.js";
+import { useVoiceSessionStore } from '@app/provider/voiceSessionStore.js';
 
 const ChannelPanel = () => {
   const { serverId, channelId } = useParams();
