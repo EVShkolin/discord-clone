@@ -26,7 +26,6 @@ export type PeerEvents = {
     },
     callback: (canConsume: boolean) => void,
   ];
-
 };
 
 export class Peer extends EnhancedEventEmitter<PeerEvents> {
@@ -80,9 +79,7 @@ export class Peer extends EnhancedEventEmitter<PeerEvents> {
     this.#socket.emit(event, ...args);
   }
 
-  private handleGeneralMessages(): void {
-
-  }
+  private handleGeneralMessages(): void {}
 
   private handleSignalingMessages(): void {
     this.#socket.on('joinRoom', async ({ serverId, channelId }, callback) => {

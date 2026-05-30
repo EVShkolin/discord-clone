@@ -2,7 +2,8 @@ import { Room } from './Room.js';
 import { Peer } from './Peer.js';
 import { RouterRtpCodecCapability, RtpCapabilities, Worker } from 'mediasoup/types';
 import { EnhancedEventEmitter } from 'mediasoup/extras';
-import { ChannelInfo } from './messages/responseData.js';
+import { VoiceChatMember } from './messages/serverRequestTypes.js';
+import { Channel } from './messages/kafkaEvents.js';
 
 const mediaCodecs: RouterRtpCodecCapability[] = [
   {
@@ -24,21 +25,13 @@ const mediaCodecs: RouterRtpCodecCapability[] = [
 export type RoomManagerEvents = {
   'get-channel-info': [
     { serverId: number; channelId: number },
-    resolve: (channelInfo: ChannelInfo) => void,
+    resolve: (channelInfo: Channel) => void,
     reject: (error: Error) => void,
   ];
 
   'joined-voice-channel': [{ userId: number; serverId: number; channelId: number }];
 
   'left-voice-channel': [{ userId: number; serverId: number; channelId: number }];
-};
-
-export type VoiceChatMember = {
-  userId: number;
-  memberId?: number;
-  name?: string;
-  avatarUrl?: string;
-  currentChannelId: number;
 };
 
 export class RoomManager extends EnhancedEventEmitter<RoomManagerEvents> {
@@ -86,7 +79,7 @@ export class RoomManager extends EnhancedEventEmitter<RoomManagerEvents> {
   }
 
   private async createNewRoom(serverId: number, channelId: number): Promise<Room> {
-    const channelInfo = await new Promise<ChannelInfo>((resolve, reject) => {
+    const channelInfo = await new Promise<Channel>((resolve, reject) => {
       this.emit('get-channel-info', { serverId, channelId }, resolve, reject);
     });
 

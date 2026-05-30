@@ -6,7 +6,17 @@ import type {
   RtpCapabilities,
   RtpParameters,
 } from 'mediasoup/types';
-import { VoiceChatMember } from '../RoomManager.js';
+import { VoiceChatMember } from './serverRequestTypes.js';
+import {
+  ChannelCreatedEvent,
+  ChannelDeletedEvent,
+  ChannelUpdatedEvent,
+  MemberJoinedEvent,
+  MemberLeftEvent,
+  MessageCreatedEvent,
+  MessageDeletedEvent,
+  MessageUpdatedEvent,
+} from './kafkaEvents.js';
 
 export interface ProducerData {
   userId: number;
@@ -81,22 +91,19 @@ export interface ServerToClientEvents {
 
   leftVoiceChannel: (data: { serverId: number; channelId: number; userId: number }) => void;
 
-  // TODO
-  messageCreated: () => void;
+  messageCreated: (data: MessageCreatedEvent) => void;
 
-  messageUpdated: () => void;
+  messageUpdated: (data: MessageUpdatedEvent) => void;
 
-  messageDeleted: () => void;
+  messageDeleted: (data: MessageDeletedEvent) => void;
 
-  channelCreated: () => void;
+  channelCreated: (data: ChannelCreatedEvent) => void;
 
-  channelUpdated: () => void;
+  channelUpdated: (data: ChannelUpdatedEvent) => void;
 
-  channelDeleted: () => void;
+  channelDeleted: (data: ChannelDeletedEvent) => void;
 
-  memberJoined: () => void;
+  memberJoined: (data: MemberJoinedEvent) => void;
 
-  memberUpdated: () => void;
-
-  memberLeft: () => void;
+  memberLeft: (data: MemberLeftEvent) => void;
 }

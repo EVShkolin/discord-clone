@@ -3,8 +3,9 @@ import { Peer } from './Peer.js';
 import * as http from 'node:http';
 import { getDataFromToken } from './jwtUtils.js';
 import { ClientToServerEvents, ServerToClientEvents } from './messages/wsMessages.js';
-import { RoomManager, VoiceChatMember } from './RoomManager.js';
+import { RoomManager } from './RoomManager.js';
 import { EnhancedEventEmitter } from 'mediasoup/extras';
+import { VoiceChatMember } from './messages/serverRequestTypes.js';
 
 type WsServerEvents = {
   'get-voice-chat-members': [

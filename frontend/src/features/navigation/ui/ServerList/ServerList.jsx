@@ -5,7 +5,6 @@ import { useAuth } from '@app/provider/AuthProvider.jsx';
 import { ServerCreateModal } from '@features/server-actions';
 import { useServerQuery } from '@shared/hooks/useServerQuery.js';
 import { useRef } from 'react';
-import { webSocketService } from '@features/websocket/lib/websocket.js';
 import { wsService } from '@shared/api/websocket/websocketClient.js';
 
 const ServerList = () => {
@@ -17,7 +16,6 @@ const ServerList = () => {
 
   const handleServerClick = (serverId, channels) => {
     const firstChannelId = channels[0].id;
-    webSocketService.subscribeToServer(serverId);
     wsService.subscribeToServer(serverId);
     navigate(`/channels/${serverId}/${firstChannelId}`);
   };

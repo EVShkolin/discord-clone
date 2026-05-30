@@ -83,7 +83,7 @@ public class ChannelServiceImpl implements ChannelService {
                 .name("General")
                 .type(ChannelType.VOICE)
                 .server(server)
-                .userLimit(0)
+                .userLimit(6)
                 .build();
         channels.add(channelRepository.save(voiceChannel));
         return channelMapper.toDtoList(channels);

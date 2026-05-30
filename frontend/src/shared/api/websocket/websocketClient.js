@@ -1,5 +1,6 @@
 import { io } from 'socket.io-client';
 import { useVoiceMembersStore } from '@entities/channel/model/voiceMembersStore.js';
+import {addMessageToCache, deleteMessageFromCache, updateMessageInCache} from "@features/message-list/index.js";
 
 class WebSocketService {
   socket = null;
@@ -50,6 +51,8 @@ class WebSocketService {
   }
 
   handleWebsocket() {
+    const user = JSON.parse(localStorage.getItem('user'));
+
     this.socket.on('connectionSuccess', ({ socketId }) => {
       console.log('Connected to mediasoup, socketId: ', socketId);
       if (this.resolveConnection) {
@@ -65,6 +68,20 @@ class WebSocketService {
     this.socket.on('leftVoiceChannel', ({ serverId, channelId, userId }) => {
       useVoiceMembersStore.getState().removeMember(serverId, channelId, userId);
     });
+
+    this.socket.on('messageCreated', ({ message }) => {
+      if (message.author.id !== user.id) {
+        addMessageToCache(message.channelId, message);
+      }
+    });
+
+    this.socket.on('messageUpdated', ({ message }) => {
+      updateMessageInCache(message.channelId, message);
+    });
+
+    this.socket.on('messageDeleted', ({ channelId, messageId }) => {
+      deleteMessageFromCache(channelId, messageId);
+    })
   }
 }
 

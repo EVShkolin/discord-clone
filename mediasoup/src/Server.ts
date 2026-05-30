@@ -3,8 +3,12 @@ import { ApiServer } from './ApiServer.js';
 import { WsServer } from './WsServer.js';
 import { Worker } from 'mediasoup/types';
 import mediasoup from 'mediasoup';
-import { RoomManager, VoiceChatMember } from './RoomManager.js';
-import { ChannelInfo } from './messages/responseData.js';
+import { RoomManager } from './RoomManager.js';
+import { VoiceChatMember } from './messages/serverRequestTypes.js';
+import { KafkaConsumer } from './kafka/KafkaConsumer.js';
+import { Channel } from './messages/kafkaEvents.js';
+
+const topics = ['messages'];
 
 export class Server {
   #httpServer: http.Server;
@@ -18,6 +22,7 @@ export class Server {
     const worker = await Server.createWorker();
     const roomManager = new RoomManager(worker);
     const wsServer = WsServer.create(httpServer, roomManager);
+    this.createKafkaConsumer(wsServer);
 
     return new Server(httpServer, apiServer, wsServer, roomManager);
   }
@@ -55,10 +60,15 @@ export class Server {
     return newWorker;
   }
 
+  private static createKafkaConsumer(wsServer: WsServer): void {
+    const consumer = KafkaConsumer.create(wsServer);
+    consumer.startConsumer(topics);
+  }
+
   private handleRoomManager(): void {
     this.#roomManager.on('get-channel-info', async ({ serverId, channelId }, resolve, reject) => {
       try {
-        const channelInfo: ChannelInfo = await this.#apiServer.fetchChannelData(serverId, channelId);
+        const channelInfo: Channel = await this.#apiServer.fetchChannelData(serverId, channelId);
         resolve(channelInfo);
       } catch (err) {
         console.log(err);
@@ -85,7 +95,6 @@ export class Server {
       const members: Map<number, VoiceChatMember> = this.#roomManager.getVoiceChatMembersByServerId(serverId);
       const membersInfo = await this.#apiServer.fetchVoiceChatMembers(serverId, members.keys().toArray());
       const membersMap = new Map<number, VoiceChatMember[]>();
-
 
       for (const member of membersInfo) {
         const roomId = members.get(member.userId)?.currentChannelId;

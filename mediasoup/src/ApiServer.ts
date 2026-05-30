@@ -1,7 +1,7 @@
 import express, { Express } from 'express';
-import { ChannelInfo } from './messages/responseData.js';
+import { VoiceChatMember } from './messages/serverRequestTypes.js';
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
-import { VoiceChatMember } from './RoomManager.js';
+import { Channel } from 'node:diagnostics_channel';
 
 const TOKEN = process.env.MEDIASOUP_JWT;
 
@@ -40,13 +40,15 @@ export class ApiServer {
     return client;
   }
 
-  async fetchChannelData(serverId: number, channelId: number): Promise<ChannelInfo> {
-    const response = await this.#apiClient.get<ChannelInfo>(`/v1/servers/${serverId}/channels/${channelId}`);
+  async fetchChannelData(serverId: number, channelId: number): Promise<Channel> {
+    const response = await this.#apiClient.get<Channel>(`/v1/servers/${serverId}/channels/${channelId}`);
     return response.data;
   }
 
   async fetchUserData(serverId: number, userId: number): Promise<VoiceChatMember> {
-    const response = await this.#apiClient.get<VoiceChatMember>(`/v1/servers/${serverId}/members/by-user?userId=${userId}`);
+    const response = await this.#apiClient.get<VoiceChatMember>(
+      `/v1/servers/${serverId}/members/by-user?userId=${userId}`
+    );
     return response.data;
   }
 
